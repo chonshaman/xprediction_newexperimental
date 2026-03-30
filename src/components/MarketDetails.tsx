@@ -19,14 +19,14 @@ function generateChartData(currentYesPrice: number) {
   const dataPoints = [];
   const numPoints = 7; // 24 hours / 4-hour intervals
   const volatility = 8; // Max price swing +/- 8%
-  
+
   // Create realistic price movements that end at current price
   let previousPrice = currentYesPrice - (Math.random() * 10 - 5); // Start slightly different
-  
+
   for (let i = 0; i < numPoints; i++) {
     const hour = i * 4;
     const timeStr = `${hour.toString().padStart(2, '0')}:00`;
-    
+
     // For last point, use current market price
     if (i === numPoints - 1) {
       dataPoints.push({
@@ -39,59 +39,59 @@ function generateChartData(currentYesPrice: number) {
       const drift = (currentYesPrice - previousPrice) * 0.2; // Pull towards current
       const randomChange = (Math.random() - 0.5) * volatility;
       let yesPrice = previousPrice + drift + randomChange;
-      
+
       // Keep within realistic bounds
       yesPrice = Math.max(5, Math.min(95, yesPrice));
-      
+
       dataPoints.push({
         time: timeStr,
         yes: Math.round(yesPrice),
         no: Math.round(100 - yesPrice)
       });
-      
+
       previousPrice = yesPrice;
     }
   }
-  
+
   return dataPoints;
 }
 
 // Generate dynamic orderbook data based on actual market prices
 function generateOrderBookData(
-  basePrice: number, 
-  side: 'buy' | 'sell', 
+  basePrice: number,
+  side: 'buy' | 'sell',
   outcome: 'yes' | 'no',
   marketVolume: number
 ) {
   const orders: any[] = [];
   const numOrders = 7; // Show exactly 7 orders for each side
-  
+
   // Calculate realistic price increments based on market price
   // Lower prices have smaller spreads, higher prices have larger spreads
   const priceIncrement = basePrice < 20 ? 0.5 : basePrice < 50 ? 1 : basePrice < 80 ? 1.5 : 2;
-  
+
   // Calculate share sizes based on market volume (higher volume = more liquidity)
   const volumeMultiplier = Math.max(1, marketVolume / 100000);
-  
+
   for (let i = 0; i < numOrders; i++) {
     // Asks (sells) go up from base, Bids (buys) go down from base
-    const price = side === 'sell' 
+    const price = side === 'sell'
       ? basePrice + (i * priceIncrement)
       : basePrice - (i * priceIncrement);
-    
+
     // Skip invalid prices (outside 0-100 range for prediction markets)
     if (price < 0.5 || price > 99.5) {
       // For invalid prices, adjust to stay within bounds
-      const adjustedPrice = side === 'sell' 
+      const adjustedPrice = side === 'sell'
         ? Math.min(99.5, basePrice + (i * priceIncrement * 0.5))
         : Math.max(0.5, basePrice - (i * priceIncrement * 0.5));
-      
+
       if ((side === 'sell' && adjustedPrice >= basePrice) || (side === 'buy' && adjustedPrice <= basePrice)) {
         // Larger orders closer to spread, smaller orders further away (realistic depth)
         const depthMultiplier = 1 + (numOrders - i) * 0.3;
         const shares = Math.floor((Math.random() * 10 + 8) * volumeMultiplier * depthMultiplier);
         const total = (adjustedPrice * shares) / 100;
-        
+
         orders.push({
           type: side,
           price: Math.round(adjustedPrice * 10) / 10, // Round to 1 decimal
@@ -102,12 +102,12 @@ function generateOrderBookData(
       }
       continue;
     }
-    
+
     // Larger orders closer to spread, smaller orders further away (realistic depth)
     const depthMultiplier = 1 + (numOrders - i) * 0.3;
     const shares = Math.floor((Math.random() * 10 + 8) * volumeMultiplier * depthMultiplier);
     const total = (price * shares) / 100;
-    
+
     orders.push({
       type: side,
       price: Math.round(price * 10) / 10, // Round to 1 decimal
@@ -116,17 +116,17 @@ function generateOrderBookData(
       outcome
     });
   }
-  
+
   // Ensure we always return exactly 7 orders
   while (orders.length < 7) {
     const lastOrder = orders[orders.length - 1];
-    const price = side === 'sell' 
+    const price = side === 'sell'
       ? Math.min(99.5, lastOrder.price + priceIncrement)
       : Math.max(0.5, lastOrder.price - priceIncrement);
-    
+
     const shares = Math.floor((Math.random() * 5 + 3) * volumeMultiplier);
     const total = (price * shares) / 100;
-    
+
     orders.push({
       type: side,
       price: Math.round(price * 10) / 10,
@@ -135,14 +135,14 @@ function generateOrderBookData(
       outcome
     });
   }
-  
+
   return orders.slice(0, 7); // Ensure exactly 7 orders
 }
 
 export function MarketDetails({ market, onBack }: MarketDetailsProps) {
   // Detect if this is a multi-outcome market (3+ outcomes)
   const isMultiOutcome = market.outcomes && market.outcomes.length > 2;
-  
+
   // Start with no outcome selected - user must choose
   const [selectedOutcome, setSelectedOutcome] = useState<string>('');
   const [amount, setAmount] = useState<string>('100');
@@ -159,7 +159,7 @@ export function MarketDetails({ market, onBack }: MarketDetailsProps) {
 
   // Calculate liquidity if not provided (use volume as a base)
   const liquidity = market.stats.liquidity || market.stats.volume * 0.15;
-  const liquidityFormatted = market.stats.liquidityFormatted || 
+  const liquidityFormatted = market.stats.liquidityFormatted ||
     (liquidity >= 1000000 ? `$${(liquidity / 1000000).toFixed(1)}M` : `$${(liquidity / 1000).toFixed(1)}K`);
 
   // Use actual market prediction percentages
@@ -175,20 +175,20 @@ export function MarketDetails({ market, onBack }: MarketDetailsProps) {
     // YES market orders
     const yesSellOrders = generateOrderBookData(currentYesPercentage + 2, 'sell', 'yes', market.stats.volume);
     const yesBuyOrders = generateOrderBookData(currentYesPercentage - 1, 'buy', 'yes', market.stats.volume);
-    
+
     // NO market orders (complement of YES)
     const noSellOrders = generateOrderBookData(market.prediction.noPercentage + 2, 'sell', 'no', market.stats.volume);
     const noBuyOrders = generateOrderBookData(market.prediction.noPercentage - 1, 'buy', 'no', market.stats.volume);
-    
+
     // Combine all orders to pass to OrderBookChart (it will filter based on active tab)
     const sellOrders = [...yesSellOrders, ...noSellOrders];
     const buyOrders = [...yesBuyOrders, ...noBuyOrders];
-    
+
     // Calculate dynamic spread from YES market (most liquid)
     const yesBestAsk = yesSellOrders.length > 0 ? Math.min(...yesSellOrders.map(o => o.price)) : currentYesPercentage + 2;
     const yesBestBid = yesBuyOrders.length > 0 ? Math.max(...yesBuyOrders.map(o => o.price)) : currentYesPercentage - 1;
     const spread = Math.round((yesBestAsk - yesBestBid) * 10) / 10; // Round to 1 decimal
-    
+
     return { sellOrders, buyOrders, spread };
   }, [market.id, currentYesPercentage, market.prediction.noPercentage, market.stats.volume]);
 
@@ -196,17 +196,17 @@ export function MarketDetails({ market, onBack }: MarketDetailsProps) {
   const chartData = useMemo(() => {
     return generateChartData(currentYesPercentage);
   }, [market.id, currentYesPercentage]);
-  
+
   const lastPrice = currentYesPercentage;
 
   return (
-    <div 
+    <div
       className="animate-in fade-in duration-300"
       style={{ paddingBottom: 'var(--gap--4rem)' }}
     >
       {/* Navigation */}
       <div className="mb-4 sm:mb-6">
-        <button 
+        <button
           onClick={onBack}
           className="flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors"
         >
@@ -219,9 +219,9 @@ export function MarketDetails({ market, onBack }: MarketDetailsProps) {
         {/* Main Content (Left Column) */}
         <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Header Card */}
-          <div 
+          <div
             className="overflow-hidden"
-            style={{ 
+            style={{
               background: 'var(--card-gradient)',
               border: '1px solid var(--black-a1)',
               borderRadius: 'var(--radius-xl)',
@@ -230,7 +230,7 @@ export function MarketDetails({ market, onBack }: MarketDetailsProps) {
             }}
           >
             {/* Container with gap between rows */}
-            <div 
+            <div
               className="flex flex-col"
               style={{ gap: 'var(--gap--1-5rem)' }}
             >
@@ -240,16 +240,16 @@ export function MarketDetails({ market, onBack }: MarketDetailsProps) {
                 <div className="flex-1 flex flex-col gap-4">
                   {/* Category and Date */}
                   <div className="flex gap-2 items-center flex-wrap">
-                    <div 
+                    <div
                       className="flex items-center justify-center px-3 py-1 shrink-0"
-                      style={{ 
+                      style={{
                         backgroundColor: 'var(--accent)',
                         borderRadius: 'var(--radius-input)',
                       }}
                     >
-                      <p 
+                      <p
                         className="font-sans text-nowrap whitespace-pre"
-                        style={{ 
+                        style={{
                           fontSize: 'var(--text-xs)',
                           fontWeight: 'var(--font-weight-medium)',
                           lineHeight: '16px',
@@ -261,9 +261,9 @@ export function MarketDetails({ market, onBack }: MarketDetailsProps) {
                     </div>
 
                     {market.accessCode && (
-                      <div 
+                      <div
                         className="flex items-center gap-1.5 px-3 py-1 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
-                        style={{ 
+                        style={{
                           backgroundColor: 'var(--gold-3)',
                           border: '1px solid var(--gold-6)',
                           borderRadius: 'var(--radius-input)',
@@ -271,9 +271,9 @@ export function MarketDetails({ market, onBack }: MarketDetailsProps) {
                         onClick={handleCopyCode}
                         title="Copy Access Code"
                       >
-                        <p 
+                        <p
                           className="font-sans text-nowrap whitespace-pre"
-                          style={{ 
+                          style={{
                             fontSize: 'var(--text-xs)',
                             fontWeight: 'var(--font-weight-medium)',
                             lineHeight: '16px',
@@ -291,16 +291,16 @@ export function MarketDetails({ market, onBack }: MarketDetailsProps) {
                     )}
 
                     <div className="flex gap-1 items-center shrink-0">
-                      <Clock 
+                      <Clock
                         style={{
                           width: '14px',
                           height: '14px',
                           color: 'var(--muted-foreground)',
                         }}
                       />
-                      <p 
+                      <p
                         className="font-sans text-nowrap whitespace-pre"
-                        style={{ 
+                        style={{
                           fontSize: 'var(--text-xs)',
                           fontWeight: 'var(--font-weight-medium)',
                           lineHeight: '20px',
@@ -313,7 +313,7 @@ export function MarketDetails({ market, onBack }: MarketDetailsProps) {
                   </div>
 
                   {/* Market Question Title */}
-                  <h3 
+                  <h3
                     className="font-sans"
                     style={{
                       fontSize: 'var(--text-3xl)',
@@ -327,16 +327,16 @@ export function MarketDetails({ market, onBack }: MarketDetailsProps) {
                 </div>
 
                 {/* Right - Market Image (Fixed ratio, centered vertically) */}
-                <div 
+                <div
                   className="shrink-0 overflow-hidden self-center"
-                  style={{ 
+                  style={{
                     width: '78px',
                     height: '100px',
                     borderRadius: 'var(--border-radius--0-5rem)',
                   }}
                 >
-                  <ImageWithFallback 
-                    src={market.image} 
+                  <ImageWithFallback
+                    src={market.image}
                     alt={market.question}
                     className="w-full h-full object-cover"
                   />
@@ -346,11 +346,11 @@ export function MarketDetails({ market, onBack }: MarketDetailsProps) {
               {/* Row 2: Outcome Selector */}
               {isMultiOutcome && market.outcomes ? (
                 // Multi-outcome markets: Show all outcome buttons
-                <div 
+                <div
                   className={market.outcomes.length <= 3 ? "flex gap-3" : "grid grid-cols-2 gap-3"}
                 >
                   {market.outcomes.map((outcome) => (
-                    <OutcomeButton 
+                    <OutcomeButton
                       key={outcome.id}
                       type="Yes" // Dummy value, overridden by custom props
                       price={`${outcome.percentage}%`}
@@ -365,13 +365,13 @@ export function MarketDetails({ market, onBack }: MarketDetailsProps) {
               ) : (
                 // Binary markets: Show YES/NO buttons
                 <div className="flex gap-3">
-                  <OutcomeButton 
+                  <OutcomeButton
                     type="Yes"
                     price={`${currentYesPercentage}%`}
                     selected={selectedOutcome === 'YES'}
                     onClick={() => setSelectedOutcome('YES')}
                   />
-                  <OutcomeButton 
+                  <OutcomeButton
                     type="No"
                     price={`${market.prediction.noPercentage}%`}
                     selected={selectedOutcome === 'NO'}
@@ -383,7 +383,7 @@ export function MarketDetails({ market, onBack }: MarketDetailsProps) {
           </div>
 
           {/* OrderBook / Chart Section */}
-          <OrderBookChart 
+          <OrderBookChart
             totalVolume={market.stats.volume}
             volumeFormatted={market.stats.volumeFormatted}
             yesLabel="Yes"
@@ -404,7 +404,7 @@ export function MarketDetails({ market, onBack }: MarketDetailsProps) {
           {/* Market Description */}
           <div className="space-y-3 sm:space-y-4">
             <h3 className="text-foreground">About this market</h3>
-            <div 
+            <div
               className="rounded-[var(--radius-card)] text-muted-foreground space-y-4"
               style={{
                 background: 'var(--card-gradient)',
@@ -444,7 +444,7 @@ export function MarketDetails({ market, onBack }: MarketDetailsProps) {
                   <span>{market.date}</span>
                 </div>
               </div>
-              
+
               {/* Market Timeline */}
               <div className="pt-4 border-t" style={{ borderColor: 'var(--border)' }}>
                 <MarketTimeline currentStatus="live-trading" />
@@ -471,22 +471,22 @@ export function MarketDetails({ market, onBack }: MarketDetailsProps) {
              }}
              market={market}
           /> */}
-          
+
           {/* New BuySellBlock Design */}
-          <BuySellBlockNew 
-             selectedOutcome={selectedOutcome}
-             onOutcomeChange={setSelectedOutcome}
-             amount={amount}
-             onAmountChange={setAmount}
-             onBuy={() => {
-               // Handle buy action
-               // In production, this would call an API
-             }}
-             marketPrices={{
-               yesPrice: market.prediction.yesPercentage / 100,
-               noPrice: market.prediction.noPercentage / 100
-             }}
-             market={market}
+          <BuySellBlockNew
+            selectedOutcome={selectedOutcome}
+            onOutcomeChange={setSelectedOutcome}
+            amount={amount}
+            onAmountChange={setAmount}
+            onBuy={() => {
+              // Handle buy action
+              // In production, this would call an API
+            }}
+            marketPrices={{
+              yesPrice: market.prediction.yesPercentage / 100,
+              noPrice: market.prediction.noPercentage / 100
+            }}
+            market={market}
           />
         </div>
       </div>
