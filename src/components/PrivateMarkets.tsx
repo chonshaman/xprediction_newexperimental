@@ -5,6 +5,7 @@ import type { Market } from '../data/markets';
 import { PrivateMarketsIcon } from './icons/PrivateMarketsIcon';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { CategoryCard } from './private-markets/CategoryCard';
+import { ChevronRight } from 'lucide-react';
 import {
   getAccessedMarketIds,
   addAccessedMarketId,
@@ -50,6 +51,10 @@ export const PrivateMarkets = memo(function PrivateMarkets({ onMarketSelect, onC
   const [fadeIn, setFadeIn] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  // Mobile dropdown state
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [selectedMobileCategory, setSelectedMobileCategory] = useState<string>('');
 
   // History of individually accessed markets
   const [historyMarkets, setHistoryMarkets] = useState<Market[]>(() => {
@@ -414,6 +419,8 @@ export const PrivateMarkets = memo(function PrivateMarkets({ onMarketSelect, onC
             transform: fadeIn ? 'translateY(0)' : 'translateY(12px)',
             transition: 'opacity 0.5s ease 0.1s, transform 0.5s ease 0.1s',
             overflow: 'visible',
+            position: 'relative',
+            zIndex: isDropdownOpen ? 50 : 1,
           }}
         >
           {/* Section Title */}
@@ -431,9 +438,72 @@ export const PrivateMarkets = memo(function PrivateMarkets({ onMarketSelect, onC
             Categories
           </h2>
 
-          {/* Horizontal Scrollable Category Cards */}
+          {/* Mobile Category Select */}
+          <div className="block sm:hidden mb-4 relative z-50">
+            <button
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="flex items-center justify-between w-full h-[52px] px-4 rounded-[var(--radius-xl)] shadow-[var(--shadow-1)] transition-colors hover:bg-[var(--lum-02)]"
+              style={{
+                background: 'var(--card-normal)',
+                border: '1px solid var(--black-a1)',
+              }}
+            >
+              <span className="font-sans text-[var(--text-s)] font-medium text-[var(--card-foreground)] truncate pr-4">
+                {selectedMobileCategory 
+                  ? categories.find(c => c.slug === selectedMobileCategory)?.name || 'All Private Markets'
+                  : 'All Private Markets'}
+              </span>
+              <ChevronRight 
+                className="w-5 h-5 text-[var(--gold-9)] shrink-0 transition-transform duration-200"
+                style={{ transform: isDropdownOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
+              />
+            </button>
+
+            {isDropdownOpen && (
+              <div 
+                className="absolute top-full left-0 right-0 mt-2 py-2 rounded-[var(--radius-xl)] shadow-lg overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200"
+                style={{
+                  background: 'var(--card-normal)',
+                  border: '1px solid var(--black-a1)',
+                }}
+              >
+                <button
+                  className="flex items-center justify-between w-full px-4 py-3 hover:bg-[var(--lum-02)] transition-colors text-left"
+                  onClick={() => {
+                    setSelectedMobileCategory('');
+                    setIsDropdownOpen(false);
+                    if (onCategorySelect) onCategorySelect('');
+                  }}
+                >
+                  <span className="font-sans text-[var(--text-s)] font-medium text-[var(--card-foreground)]">
+                    All Private Markets
+                  </span>
+                </button>
+                {categories.map((category) => (
+                  <button
+                    key={`mobile-cat-${category.slug}`}
+                    className="flex items-center justify-between w-full px-4 py-3 hover:bg-[var(--lum-02)] transition-colors text-left"
+                    onClick={() => {
+                      setSelectedMobileCategory(category.slug);
+                      setIsDropdownOpen(false);
+                      if (onCategorySelect) onCategorySelect(category.slug);
+                    }}
+                  >
+                    <span className="font-sans text-[var(--text-s)] font-medium text-[var(--card-foreground)] pr-4">
+                      {category.name}
+                    </span>
+                    <span className="font-sans text-[var(--text-xs)] font-medium text-[var(--gold-9)] shrink-0 px-2 py-0.5 rounded-full bg-[var(--gold-3)] border border-[var(--gold-6)]">
+                      {category.count}
+                    </span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Horizontal Scrollable Category Cards (Desktop) */}
           <div
-            className="flex flex-wrap"
+            className="hidden sm:flex flex-wrap"
             style={{
               gap: 'var(--gap--1rem)',
               paddingBottom: 'var(--gap--0-5rem)',
@@ -511,7 +581,7 @@ export const PrivateMarkets = memo(function PrivateMarkets({ onMarketSelect, onC
                 <div className="content-stretch flex items-start justify-between mb-[10px] sm:mb-[12px]">
                   <div className="basis-0 content-stretch flex flex-col grow items-start min-h-[56px] sm:min-h-[60px] min-w-px">
                     <p
-                      className="font-sans w-full"
+                      className="font-sans w-full line-clamp-3"
                       style={{
                         fontSize: 'var(--text-m)',
                         fontWeight: 'var(--font-weight-medium)',

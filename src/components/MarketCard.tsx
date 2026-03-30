@@ -156,7 +156,7 @@ export const MarketCard = memo(function MarketCard(props: MarketCardProps) {
         <div className="content-stretch flex items-start justify-between mb-[10px] sm:mb-[12px]">
           <div className="basis-0 content-stretch flex flex-col grow items-start max-h-[80px] min-h-[56px] sm:min-h-[60px] min-w-px">
             <p 
-              className="font-sans w-full max-h-[64px] min-h-[56px] sm:min-h-[60px] overflow-ellipsis overflow-hidden transition-all duration-300 ease-out"
+              className="font-sans w-full max-h-[64px] min-h-[56px] sm:min-h-[60px] line-clamp-3 transition-all duration-300 ease-out"
               style={{
                 fontSize: 'var(--text-m)',
                 fontWeight: 'var(--font-weight-medium)',
@@ -404,9 +404,9 @@ export const MarketCard = memo(function MarketCard(props: MarketCardProps) {
           {/* Left Side: Username / Avatars Swap */}
           <div className="grid grid-cols-1 grid-rows-1 items-center overflow-hidden">
             {/* Username - Default State */}
-            <div className="col-start-1 row-start-1 flex items-center transition-all duration-300 ease-out group-hover:-translate-y-full group-hover:opacity-0">
+            <div className="col-start-1 row-start-1 flex items-center transition-all duration-300 ease-out group-hover:-translate-y-full group-hover:opacity-0 min-w-0 pr-2">
                <p 
-                 className="font-sans text-nowrap whitespace-pre"
+                 className="font-sans text-nowrap whitespace-pre truncate"
                  style={{
                    fontSize: 'var(--text-xs)',
                    fontWeight: 'var(--font-weight-medium)',
@@ -452,9 +452,9 @@ export const MarketCard = memo(function MarketCard(props: MarketCardProps) {
           {/* Right Side: Volume / Participants Swap */}
           <div className="grid grid-cols-1 grid-rows-1 items-center overflow-hidden">
             {/* Volume - Default State */}
-            <div className="col-start-1 row-start-1 flex items-center justify-end transition-all duration-300 ease-out group-hover:-translate-y-full group-hover:opacity-0">
+            <div className="col-start-1 row-start-1 flex items-center justify-end transition-all duration-300 ease-out group-hover:-translate-y-full group-hover:opacity-0 min-w-0 pl-2">
               <p 
-                className="font-sans text-muted-foreground text-nowrap whitespace-pre text-right"
+                className="font-sans text-muted-foreground text-nowrap whitespace-pre text-right truncate"
                 style={{
                   fontSize: 'var(--text-xs)',
                   fontWeight: 'var(--font-weight-medium)',
@@ -466,9 +466,9 @@ export const MarketCard = memo(function MarketCard(props: MarketCardProps) {
             </div>
 
             {/* Participants - Hover State */}
-            <div className="col-start-1 row-start-1 flex items-center justify-end transition-all duration-300 ease-out translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100">
+            <div className="col-start-1 row-start-1 flex items-center justify-end transition-all duration-300 ease-out translate-y-full opacity-0 group-hover:translate-y-0 group-hover:opacity-100 min-w-0 pl-2">
               <p 
-                className="font-sans text-muted-foreground text-nowrap whitespace-pre text-right"
+                className="font-sans text-muted-foreground text-nowrap whitespace-pre text-right truncate"
                 style={{
                   fontSize: 'var(--text-xs)',
                   fontWeight: 'var(--font-weight-medium)',

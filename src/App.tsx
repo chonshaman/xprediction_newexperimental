@@ -208,7 +208,11 @@ export default function App() {
   const handleCategorySelect = useCallback((categorySlug: string) => {
     startTransition(() => {
       setSelectedCategory(categorySlug);
-      setCurrentPage('private-category');
+      if (!categorySlug) {
+        setCurrentPage('private-markets');
+      } else {
+        setCurrentPage('private-category');
+      }
     });
   }, []);
 
