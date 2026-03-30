@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 // import { BuySellBlock } from './BuySellBlock'; // Old version - hidden
 import { BuySellBlockNew } from './BuySellBlock/BuySellBlockNew';
-import { ArrowLeft, Clock, Users, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Clock, Users, MessageCircle, Copy, Check } from 'lucide-react';
 import type { Market } from '../data/markets';
 import { OutcomeButton } from './BuySellBlock/OutcomeButton';
 import { OrderBookChart } from './market-details/OrderBookChart';
@@ -63,7 +63,7 @@ function generateOrderBookData(
   outcome: 'yes' | 'no',
   marketVolume: number
 ) {
-  const orders = [];
+  const orders: any[] = [];
   const numOrders = 7; // Show exactly 7 orders for each side
   
   // Calculate realistic price increments based on market price
@@ -146,6 +146,16 @@ export function MarketDetails({ market, onBack }: MarketDetailsProps) {
   // Start with no outcome selected - user must choose
   const [selectedOutcome, setSelectedOutcome] = useState<string>('');
   const [amount, setAmount] = useState<string>('100');
+  const [copied, setCopied] = useState(false);
+
+  const handleCopyCode = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (market.accessCode) {
+      navigator.clipboard.writeText(market.accessCode);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
+  };
 
   // Calculate liquidity if not provided (use volume as a base)
   const liquidity = market.stats.liquidity || market.stats.volume * 0.15;
@@ -229,7 +239,7 @@ export function MarketDetails({ market, onBack }: MarketDetailsProps) {
                 {/* Left - Title and Meta Info */}
                 <div className="flex-1 flex flex-col gap-4">
                   {/* Category and Date */}
-                  <div className="flex gap-2 items-center">
+                  <div className="flex gap-2 items-center flex-wrap">
                     <div 
                       className="flex items-center justify-center px-3 py-1 shrink-0"
                       style={{ 
@@ -249,6 +259,37 @@ export function MarketDetails({ market, onBack }: MarketDetailsProps) {
                         {market.category.name}
                       </p>
                     </div>
+
+                    {market.accessCode && (
+                      <div 
+                        className="flex items-center gap-1.5 px-3 py-1 shrink-0 cursor-pointer hover:opacity-80 transition-opacity"
+                        style={{ 
+                          backgroundColor: 'var(--gold-3)',
+                          border: '1px solid var(--gold-6)',
+                          borderRadius: 'var(--radius-input)',
+                        }}
+                        onClick={handleCopyCode}
+                        title="Copy Access Code"
+                      >
+                        <p 
+                          className="font-sans text-nowrap whitespace-pre"
+                          style={{ 
+                            fontSize: 'var(--text-xs)',
+                            fontWeight: 'var(--font-weight-medium)',
+                            lineHeight: '16px',
+                            color: 'var(--gold-11)',
+                          }}
+                        >
+                          Code: {market.accessCode}
+                        </p>
+                        {copied ? (
+                          <Check className="w-3.5 h-3.5" style={{ color: 'var(--gold-11)' }} />
+                        ) : (
+                          <Copy className="w-3.5 h-3.5" style={{ color: 'var(--gold-11)' }} />
+                        )}
+                      </div>
+                    )}
+
                     <div className="flex gap-1 items-center shrink-0">
                       <Clock 
                         style={{

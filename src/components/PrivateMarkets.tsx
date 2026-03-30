@@ -20,6 +20,8 @@ const PRIVATE_CODE = 'lumberworks2026';
 const categoryCodesMap = new Map<string, string>([
   ['lumberworks-pass', 'lumberworks-private'],
   ['elite-pass', 'lumberworks-elite'],
+  ['rwa-pass', 'rwa-signal'],
+  ['capitol-pass', 'capitol-insider'],
   ['crypto-signal', 'crypto-signal'],
 ]);
 
