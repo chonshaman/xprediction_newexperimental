@@ -19,6 +19,7 @@ const PRIVATE_CODE = 'lumberworks2026';
 // Category access codes -> category slug
 const categoryCodesMap = new Map<string, string>([
   ['lumberworks-pass', 'lumberworks-private'],
+  ['elite-pass', 'lumberworks-elite'],
   ['crypto-signal', 'crypto-signal'],
 ]);
 
@@ -63,9 +64,9 @@ export const PrivateMarkets = memo(function PrivateMarkets({ onMarketSelect, onC
   const categories = useMemo(() => {
     // Show categories if we have any visible markets
     if (visibleMarkets.length === 0) return [];
-    
+
     const categoryMap = new Map<string, { name: string; slug: string; count: number }>();
-    
+
     visibleMarkets.forEach((market) => {
       const { name, slug } = market.category;
       const existing = categoryMap.get(slug);
@@ -87,7 +88,7 @@ export const PrivateMarkets = memo(function PrivateMarkets({ onMarketSelect, onC
 
   const handleSubmit = useCallback(() => {
     const trimmed = code.trim().toLowerCase();
-    
+
     // Check if it's a market-specific code
     const matchedMarket = codeToMarketMap.get(trimmed);
     if (matchedMarket) {
@@ -105,15 +106,15 @@ export const PrivateMarkets = memo(function PrivateMarkets({ onMarketSelect, onC
       }
       return;
     }
-    
+
     // Check if it's a category code
     const matchedCategorySlug = categoryCodesMap.get(trimmed);
     if (matchedCategorySlug) {
       setError('');
       setCode('');
-      
+
       const categoryMarkets = privateMarkets.filter(m => m.category.slug === matchedCategorySlug);
-      
+
       if (categoryMarkets.length > 0) {
         categoryMarkets.forEach(m => addAccessedMarketId(m.id));
         setHistoryMarkets(prev => {
@@ -123,7 +124,7 @@ export const PrivateMarkets = memo(function PrivateMarkets({ onMarketSelect, onC
       }
       return;
     }
-    
+
     // Check master code
     if (trimmed === PRIVATE_CODE) {
       setError('');
@@ -516,7 +517,7 @@ export const PrivateMarkets = memo(function PrivateMarkets({ onMarketSelect, onC
                         color: 'var(--black-a11)',
                       }}
                     >
-                      {masterUnlocked 
+                      {masterUnlocked
                         ? 'All markets unlocked. You can still enter individual codes here.'
                         : 'Enter a private access code to unlock exclusive markets'}
                     </p>
