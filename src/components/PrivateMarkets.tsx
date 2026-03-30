@@ -51,7 +51,7 @@ export const PrivateMarkets = memo(function PrivateMarkets({ onMarketSelect, onC
   const [fadeIn, setFadeIn] = useState(false);
   const [transitioning, setTransitioning] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  
+
   // Mobile dropdown state
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [selectedMobileCategory, setSelectedMobileCategory] = useState<string>('');
@@ -449,18 +449,18 @@ export const PrivateMarkets = memo(function PrivateMarkets({ onMarketSelect, onC
               }}
             >
               <span className="font-sans text-[var(--text-s)] font-medium text-[var(--card-foreground)] truncate pr-4">
-                {selectedMobileCategory 
+                {selectedMobileCategory
                   ? categories.find(c => c.slug === selectedMobileCategory)?.name || 'All Private Markets'
                   : 'All Private Markets'}
               </span>
-              <ChevronRight 
+              <ChevronRight
                 className="w-5 h-5 text-[var(--gold-9)] shrink-0 transition-transform duration-200"
                 style={{ transform: isDropdownOpen ? 'rotate(90deg)' : 'rotate(0deg)' }}
               />
             </button>
 
             {isDropdownOpen && (
-              <div 
+              <div
                 className="absolute top-full left-0 right-0 mt-2 py-2 rounded-[var(--radius-xl)] shadow-lg overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 duration-200"
                 style={{
                   background: 'var(--card-normal)',
